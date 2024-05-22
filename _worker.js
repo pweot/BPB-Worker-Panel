@@ -7,74 +7,14 @@ import { connect } from 'cloudflare:sockets';
 
 // How to generate your own UUID:
 // https://www.uuidgenerator.net/
-let userID = '89b3cbba-e6ac-485a-9481-976a0415eab9';
+let userID = 'ffc59aef-3253-4ae6-8a5d-7d2b43e8c25f';
 
 // https://www.nslookup.io/domains/cdn.xn--b6gac.eu.org/dns-records/
 // https://www.nslookup.io/domains/cdn-all.xn--b6gac.eu.org/dns-records/
-//const proxyIPs= ['cdn.xn--b6gac.eu.org', 'cdn-all.xn--b6gac.eu.org', 'edgetunnel.anycast.eu.org'];
-
-
-const dns = require('dns');
-const { exec } = require('child_process');
-
-let proxyIPs = ['cdn.xn--b6gac.eu.org', 'cdn-all.xn--b6gac.eu.org'];
-
-function updateProxyIPs() {
-  // 清空 proxyIPs 数组
-  proxyIPs.length = 0;
-
-  // 存储荷兰 IP 地址和对应的最低延迟
-  let lowestLatencyIp = null;
-  let lowestLatency = Infinity;
-
-  // 解析域名并获取延迟
-  proxyIPs.forEach(domain => {
-    dns.resolve4(domain, (err, addresses) => {
-      if (err) {
-        console.error(`Error resolving ${domain}:`, err);
-      } else {
-        addresses.forEach(ip => {
-          // 执行 ping 命令获取延迟
-          exec(`ping -c 3 ${ip}`, (err, stdout, stderr) => {
-            if (err) {
-              console.error(`Error pinging ${ip}:`, err);
-              return;
-            }
-            // 解析 ping 结果
-            const match = stdout.match(/time=([\d.]+) ms/);
-            if (match) {
-              const latency = parseFloat(match[1]);
-              // 判断是否为荷兰 IP 地址以及是否为最低延迟
-              if (ip.endsWith('.nl') && latency < lowestLatency) {
-                lowestLatency = latency;
-                lowestLatencyIp = ip;
-              }
-            } else {
-              console.error(`No latency found for ${ip}`);
-            }
-
-            // 在解析完成后，将最低延迟的荷兰 IP 地址添加到 proxyIPs 数组中
-            if (lowestLatencyIp) {
-              proxyIPs.push(lowestLatencyIp);
-              console.log("Updated proxyIPs array:", proxyIPs);
-            } else {
-              console.error(`No suitable Netherlands IP found.`);
-            }
-          });
-        });
-      }
-    });
-  });
-}
-
-// 初始执行一次
-updateProxyIPs();
-
-// 每 7 小时执行一次
-setInterval(updateProxyIPs, 7 * 60 * 60 * 1000);
+const proxyIPs= ['cdn.xn--b6gac.eu.org', 'cdn-all.xn--b6gac.eu.org', 'edgetunnel.anycast.eu.org'];
 
 let proxyIP = proxyIPs[Math.floor(Math.random() * proxyIPs.length)];
-//``````````````````````
+
 let dohURL = 'https://cloudflare-dns.com/dns-query';
 
 let panelVersion = '2.3.5';
